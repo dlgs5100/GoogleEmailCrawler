@@ -1,14 +1,20 @@
 import time
+import sys
+import xlwt
 from selenium import webdriver
 from bs4 import BeautifulSoup
 
-def crawl():
+def crawling():
     keyword = input('Enter a keyword:')
+    mailType = input('Enter the mail type for crawling:')
     page = input('Search page amount:')
     url = 'https://www.google.com.tw/search?q='+keyword
     browser = webdriver.Chrome()
     browser.get(url)
 
+    book = xlwt.Workbook(encoding="utf-8")
+    sheet1 = book.add_sheet("Email")
+    count = 0
 
     for i in range(0, int(page)):
         soup = BeautifulSoup(browser.page_source, 'html.parser')
@@ -18,9 +24,11 @@ def crawl():
         Emails = soup.select('span.st')
         for i in Emails:
             for j in i.text.split(' '):
-                result = findEmail(j,keyword)
+                result = findEmail(j,mailType)
                 if result != 0:
                     print(result)
+                    sheet1.write(count, 0, result)
+                    count = count + 1
 
         try:
             browser.find_element_by_link_text('下一頁').click()
@@ -30,6 +38,7 @@ def crawl():
         time.sleep(0.1)
 
     browser.close()
+    book.save('Test.xls')
 
 def findEmail(string, mailType):
     t = 0
@@ -55,7 +64,7 @@ def findEmail(string, mailType):
         return 0
 
 def main():
-    crawl()
+    crawling()
 
 if __name__ == "__main__":
     main()
