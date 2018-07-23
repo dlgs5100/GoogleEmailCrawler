@@ -4,6 +4,8 @@ import xlwt
 import re
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
+from tkinter import filedialog
 from selenium import webdriver
 from bs4 import BeautifulSoup
 
@@ -13,13 +15,14 @@ def crawling(keyword, mailType, page):
     mailType = mailType.rstrip('\n')
     page = page.rstrip('\n')
 
-    url = 'https://www.google.com.tw/search?q='+keyword
+    url = 'https://www.google.com.tw/search?q='+keyword+'&filter=0'
     browser = webdriver.Chrome()
     browser.get(url)
 
     book = xlwt.Workbook(encoding="utf-8")
     sheet1 = book.add_sheet("Email")
-    count = 0
+    countEmail = 0
+    countPage = 0
 
     for i in range(0, int(page)):
         soup = BeautifulSoup(browser.page_source, 'html.parser')
@@ -29,21 +32,25 @@ def crawling(keyword, mailType, page):
         Emails = soup.select('span.st')
         for i in Emails:
             for j in i.text.split(' '):
-                result = findEmail(j,mailType)
+                result = findEmail(j,'@'+mailType)
                 if result != 0:
                     print(result)
-                    sheet1.write(count, 0, result)
-                    count = count + 1
+                    sheet1.write(countEmail, 0, result)
+                    countEmail = countEmail + 1
 
         try:
             browser.find_element_by_link_text('下一頁').click()
+            countPage = countPage + 1
         except Exception as msg:
             break
 
         time.sleep(0.1)
 
     browser.close()
-    book.save('Test.xls')
+    if messagebox.askquestion('Info','Crawling page : ' + str(countPage) + '\nTotal result : ' + str(countEmail) + '\nWanna saving file?') == 'yes':
+        savingPath = filedialog.asksaveasfilename(title='Save file', initialdir='C:\mywork', initialfile='Test.xls', filetypes=(("Excel files", "*.xls"), ("All files", "*.*") ))
+        if savingPath != '':
+            book.save(savingPath)
 
 def findEmail(string, mailType):
     t = 0
