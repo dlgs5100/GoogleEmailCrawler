@@ -1,15 +1,18 @@
 import time
 import sys
 import xlwt
+import re
 import tkinter as tk
 from tkinter import ttk
 from selenium import webdriver
 from bs4 import BeautifulSoup
 
-def crawling():
-    keyword = input('Enter a keyword:')
-    mailType = input('Enter the mail type for crawling:')
-    page = input('Search page amount:')
+def crawling(keyword, mailType, page):
+
+    keyword = keyword.rstrip('\n')
+    mailType = mailType.rstrip('\n')
+    page = page.rstrip('\n')
+
     url = 'https://www.google.com.tw/search?q='+keyword
     browser = webdriver.Chrome()
     browser.get(url)
@@ -65,25 +68,33 @@ def findEmail(string, mailType):
     else:
         return 0
 
-def onClickCrawling():
-    crawling()
+class MainApplication(tk.Frame):
+    def __init__(self,master=None):
+        tk.Frame.__init__(self,master)
+        self.setWidget()
 
-def main():
-    
+    def setWidget(self):
+        self.labelKeyword=ttk.Label(window, text='Enter a Keyword:', font=('Times New Roman',16)).grid(column=0, row=0, padx=10, pady=10)
+        self.textKeyword=tk.Text(window, height=2, width=35)
+        self.textKeyword.grid(column=1, row=0, padx=10, pady=10)
+
+        self.labelMailType=ttk.Label(window, text='Enter the mail type: @', font=('Times New Roman',16)).grid(column=0, row=1, padx=10, pady=10)
+        self.textMailType=tk.Text(window, height=2, width=35)
+        self.textMailType.grid(column=1, row=1, padx=10, pady=10)
+
+        self.labelPages=ttk.Label(window, text='Enter pages to crawling:', font=('Times New Roman',16)).grid(column=0, row=2, padx=10, pady=10)
+        self.textPages=tk.Text(window, height=2, width=35)
+        self.textPages.grid(column=1, row=2, padx=10, pady=10)
+
+        self.buttonCrawling=ttk.Button(window, text='Crawling', command=self.onClickCrawling).grid(columnspan=2, padx=10, pady=10)
+
+    def onClickCrawling(self):
+        crawling(self.textKeyword.get(1.0,tk.END), self.textMailType.get(1.0,tk.END), self.textPages.get(1.0,tk.END))
+        
+if __name__ == "__main__":
     window=tk.Tk()
     window.title('Email Crawler')
     window.geometry('500x300')
     window.resizable(0,0)
-
-    labelKeyword=ttk.Label(window, text='Enter a Keyword:', font=('Times New Roman',16)).grid(column=0, row=0, padx=10, pady=10)
-    textKeyword=tk.Text(window, height=2, width=35).grid(column=1, row=0, padx=10, pady=10)
-
-    labelMailType=ttk.Label(window, text='Enter the mail type: @', font=('Times New Roman',16)).grid(column=0, row=1, padx=10, pady=10)
-    textMailType=tk.Text(window, height=2, width=35).grid(column=1, row=1, padx=10, pady=10)
-
-    buttonCrawling=ttk.Button(window, text='Crawling', command=onClickCrawling).grid(columnspan=2, padx=10, pady=10)
-
+    MainApplication(master=window)
     window.mainloop()
-
-if __name__ == "__main__":
-    main()
