@@ -1,6 +1,8 @@
 import time
 import sys
 import xlwt
+import tkinter as tk
+from tkinter import ttk
 from selenium import webdriver
 from bs4 import BeautifulSoup
 
@@ -63,8 +65,25 @@ def findEmail(string, mailType):
     else:
         return 0
 
-def main():
+def onClickCrawling():
     crawling()
+
+def main():
+    
+    window=tk.Tk()
+    window.title('Email Crawler')
+    window.geometry('500x300')
+    window.resizable(0,0)
+
+    labelKeyword=ttk.Label(window, text='Enter a Keyword:', font=('Times New Roman',16)).grid(column=0, row=0, padx=10, pady=10)
+    textKeyword=tk.Text(window, height=2, width=35).grid(column=1, row=0, padx=10, pady=10)
+
+    labelMailType=ttk.Label(window, text='Enter the mail type: @', font=('Times New Roman',16)).grid(column=0, row=1, padx=10, pady=10)
+    textMailType=tk.Text(window, height=2, width=35).grid(column=1, row=1, padx=10, pady=10)
+
+    buttonCrawling=ttk.Button(window, text='Crawling', command=onClickCrawling).grid(columnspan=2, padx=10, pady=10)
+
+    window.mainloop()
 
 if __name__ == "__main__":
     main()
