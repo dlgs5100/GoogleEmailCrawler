@@ -2,6 +2,8 @@ import time
 import sys
 import xlwt
 import re
+import random
+import threading
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
@@ -9,7 +11,7 @@ from tkinter import filedialog
 from selenium import webdriver
 from bs4 import BeautifulSoup
 
-def crawling(keyword, mailType, page):
+def crawling(self, keyword, mailType, page):
 
     keyword = keyword.rstrip('\n')
     mailType = mailType.rstrip('\n')
@@ -37,6 +39,7 @@ def crawling(keyword, mailType, page):
                     print(result)
                     sheet1.write(countEmail, 0, result)
                     countEmail = countEmail + 1
+                    self.labelStatus.config(text = 'Found ' + str(countEmail) + ' result\nLoading...', foreground = 'black')
 
         try:
             browser.find_element_by_link_text('下一頁').click()
@@ -44,9 +47,10 @@ def crawling(keyword, mailType, page):
         except Exception as msg:
             break
 
-        time.sleep(0.1)
+        time.sleep(random.random())
 
     browser.close()
+    self.labelStatus.config(text = 'Accept', foreground = 'green')
     if messagebox.askquestion('Info','Crawling page : ' + str(countPage) + '\nTotal result : ' + str(countEmail) + '\nWanna saving file?') == 'yes':
         savingPath = filedialog.asksaveasfilename(title='Save file', initialdir='C:\mywork', initialfile='Test.xls', filetypes=(("Excel files", "*.xls"), ("All files", "*.*") ))
         if savingPath != '':
@@ -94,9 +98,15 @@ class MainApplication(tk.Frame):
         self.textPages.grid(column=1, row=2, padx=10, pady=10)
 
         self.buttonCrawling=ttk.Button(window, text='Crawling', command=self.onClickCrawling).grid(columnspan=2, padx=10, pady=10)
+        self.labelStatus=ttk.Label(window, text='', font=('Times New Roman',16))
+        self.labelStatus.grid(columnspan=2, padx=10, pady=10)
 
     def onClickCrawling(self):
-        crawling(self.textKeyword.get(1.0,tk.END), self.textMailType.get(1.0,tk.END), self.textPages.get(1.0,tk.END))
+        self.labelStatus.config(text = 'Found 0 result\nLoading...', foreground = 'black')
+
+        t = threading.Thread(target = crawling, args = (self, self.textKeyword.get(1.0,tk.END), self.textMailType.get(1.0,tk.END), self.textPages.get(1.0,tk.END)))
+        t.setDaemon(True)
+        t.start()
         
 if __name__ == "__main__":
     window=tk.Tk()
