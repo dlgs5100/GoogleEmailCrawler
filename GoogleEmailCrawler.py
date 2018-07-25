@@ -21,8 +21,7 @@ def crawling(self, keyword, mailType, page):
     browser = webdriver.Chrome()
     browser.get(url)
 
-    book = xlwt.Workbook(encoding="utf-8")
-    sheet1 = book.add_sheet("Email")
+    originalData = []
     countEmail = 0
     countPage = 0
 
@@ -37,7 +36,7 @@ def crawling(self, keyword, mailType, page):
                 result = findEmail(j,'@'+mailType)
                 if result != 0:
                     print(result)
-                    sheet1.write(countEmail, 0, result)
+                    originalData.append(result)
                     countEmail = countEmail + 1
                     self.labelStatus.config(text = 'Found ' + str(countEmail) + ' result\nLoading...', foreground = 'black')
 
@@ -50,9 +49,11 @@ def crawling(self, keyword, mailType, page):
         time.sleep(random.random())
 
     browser.close()
+
+    countResult, book = savingExcel(delDuplicate(originalData))
     self.labelStatus.config(text = 'Accept', foreground = 'green')
-    if messagebox.askquestion('Info','Crawling page : ' + str(countPage) + '\nTotal result : ' + str(countEmail) + '\nWanna saving file?') == 'yes':
-        savingPath = filedialog.asksaveasfilename(title='Save file', initialdir='C:\mywork', initialfile='Test.xls', filetypes=(("Excel files", "*.xls"), ("All files", "*.*") ))
+    if messagebox.askquestion('Info','Crawling page : ' + str(countPage) + '\nTotal result : ' + str(countResult) + '\nWanna saving file?') == 'yes':
+        savingPath = filedialog.asksaveasfilename(title='Save file', initialdir='C:\mywork', filetypes=(("Excel files", "*.xls"), ("All files", "*.*") ))
         if savingPath != '':
             book.save(savingPath)
 
@@ -79,25 +80,40 @@ def findEmail(string, mailType):
     else:
         return 0
 
+def delDuplicate(originalData):
+    temp = []
+    for item in originalData:
+        if item not in temp:
+            temp.append(item)
+    return temp
+
+def savingExcel(resultData):
+    book = xlwt.Workbook(encoding="utf-8")
+    sheet1 = book.add_sheet("Email")
+
+    for i in range(len(resultData)):
+        sheet1.write(i, 0, resultData[i])
+    return len(resultData), book
+
 class MainApplication(tk.Frame):
     def __init__(self,master=None):
         tk.Frame.__init__(self,master)
         self.setWidget()
 
     def setWidget(self):
-        self.labelKeyword=ttk.Label(window, text='Enter a Keyword:', font=('Times New Roman',16)).grid(column=0, row=0, padx=10, pady=10)
-        self.textKeyword=tk.Text(window, height=2, width=35)
+        ttk.Label(window, text='Enter a Keyword:', font=('Times New Roman',16)).grid(column=0, row=0, padx=10, pady=10)
+        self.textKeyword=tk.Text(window, height=2, width=35)    #.grid cannot assign to variable, would trigger "AttributeError：NoneType" error
         self.textKeyword.grid(column=1, row=0, padx=10, pady=10)
 
-        self.labelMailType=ttk.Label(window, text='Enter the mail type: @', font=('Times New Roman',16)).grid(column=0, row=1, padx=10, pady=10)
+        ttk.Label(window, text='Enter the mail type: @', font=('Times New Roman',16)).grid(column=0, row=1, padx=10, pady=10)
         self.textMailType=tk.Text(window, height=2, width=35)
         self.textMailType.grid(column=1, row=1, padx=10, pady=10)
 
-        self.labelPages=ttk.Label(window, text='Enter pages to crawling:', font=('Times New Roman',16)).grid(column=0, row=2, padx=10, pady=10)
+        ttk.Label(window, text='Enter pages to crawling:', font=('Times New Roman',16)).grid(column=0, row=2, padx=10, pady=10)
         self.textPages=tk.Text(window, height=2, width=35)
         self.textPages.grid(column=1, row=2, padx=10, pady=10)
 
-        self.buttonCrawling=ttk.Button(window, text='Crawling', command=self.onClickCrawling).grid(columnspan=2, padx=10, pady=10)
+        ttk.Button(window, text='Crawling', command=self.onClickCrawling).grid(columnspan=2, padx=10, pady=10)
         self.labelStatus=ttk.Label(window, text='', font=('Times New Roman',16))
         self.labelStatus.grid(columnspan=2, padx=10, pady=10)
 
